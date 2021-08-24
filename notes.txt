@@ -1,0 +1,25 @@
+https://dev.to/divrhino/building-a-command-line-tool-with-go-and-cobra-3mjd
+https://dev.to/divrhino/building-an-interactive-cli-app-with-go-cobra-promptui-346n
+
+tried running `go run main.go` after doing `cobra init --pkg-name github.com/syncopika/todo-manager`
+C:\Users\Nicholas\Desktop\programming\todo-manager>go run main.go
+main.go:18:8: cannot find package "github.com/syncopika/todo-manager/cmd" in any of:
+        c:\go\src\github.com\syncopika\todo-manager\cmd (from $GOROOT)
+        C:\Users\Nicholas\go\src\github.com\syncopika\todo-manager\cmd (from $GOPATH)
+
+https://stackoverflow.com/questions/13214029/go-build-cannot-find-package-even-though-gopath-is-set
+
+the info about `go mod init` is useful.
+
+
+https://gobyexample.com/writing-files
+https://gobyexample.com/reading-files
+https://stackoverflow.com/questions/20234104/how-to-format-current-time-using-a-yyyymmddhhmmss-format
+
+
+// TODO
+- when tasks are done, move them to a separate file?
+- put todo.txt in a folder?
+- filter tasks when requesting them? (like show only 'in progress' or 'to do')
+- make tasks a little more than just a title, date and status? be able to provide
+  a description as well maybe?
