@@ -18,14 +18,16 @@ package cmd
 import (
 	"io/ioutil"
 	"fmt"
+	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list the tasks in the TODO list",
+// editCmd represents the edit command
+var editCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "edit a TODO item",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -33,34 +35,47 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("list called")
-		
-		// TODO: have list be able to accept an argument for how many tasks to list (subcommand?)
-		// offer option to show only todo/in-progress tasks or finished tasks?
-		// also be able to edit a task? maybe that should be a separate command (or subcommand)
-		// also format the info nicely
-		
+		//fmt.Println("edit called")
 		data, err := ioutil.ReadFile("todo.txt")
 		if err != nil {
 			fmt.Println("had trouble reading todo.txt!")
 		}else{
-			//lines := string(data)
+			lines := string(data)
+			tasks := strings.Split(lines, "\n") // only get title of task?
+			
 			//fmt.Println(strings.Split(lines, "\n"))
-			fmt.Println(string(data))
+			
+			prompt := promptui.Select{
+				Label: "Select Task",
+				Items: tasks,
+			}
+			
+			_, result, err := prompt.Run()
+
+			if err != nil {
+				fmt.Println("prompt failed!")
+			}else{
+				// TODO: after selecting task, allow user to edit
+				// add another select prompt to ask if they want to edit the title, status (and later description?)
+				// then have another prompt for editing. if status, another select prompt is needed.
+				fmt.Println("you picked: " + result + "\n")
+			}
+			
 		}
+		
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(editCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// listCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
