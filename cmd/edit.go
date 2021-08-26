@@ -28,14 +28,8 @@ import (
 var editCmd = &cobra.Command{
 	Use:   "edit",
 	Short: "edit a TODO item",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: "A longer description",
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("edit called")
 		data, err := ioutil.ReadFile("todo.txt")
 		if err != nil {
 			fmt.Println("had trouble reading todo.txt!")
@@ -50,15 +44,48 @@ to quickly create a Cobra application.`,
 				Items: tasks,
 			}
 			
-			_, result, err := prompt.Run()
+			idx, result, err2 := prompt.Run()
 
-			if err != nil {
+			if err2 != nil {
 				fmt.Println("prompt failed!")
 			}else{
 				// TODO: after selecting task, allow user to edit
 				// add another select prompt to ask if they want to edit the title, status (and later description?)
 				// then have another prompt for editing. if status, another select prompt is needed.
-				fmt.Println("you picked: " + result + "\n")
+				fmt.Printf("you picked: " + result + " at index: %d\n", idx)
+				
+				prompt2 := promptui.Select{
+					Label: "What would you like to do",
+					Items: []string{"edit task", "edit status", "nevermind"},
+				}
+				
+				_, result2, err3 := prompt2.Run()
+				if err3 != nil {
+					fmt.Println("ruh roh, prompt2 failed!")
+				}else{
+					if result2 == "edit task" {
+						fmt.Println("edit task")
+						
+						// prompt user to enter new task
+						
+					}else if result2 == "edit status" {
+						fmt.Println("edit status")
+						
+						// prompt user to select new status of task
+						promptStatus := promptui.Select{
+							Label: "Change Status",
+							Items: []string{"TODO", "IN PROGRESS", "DONE"},
+						}
+						
+						_, newStatus, err3 := promptStatus.Run()
+						if err3 != nil {
+							fmt.Println("promptStatus failed!")
+						}else{
+							fmt.Println("new status: " + newStatus)
+						}
+					}
+				}
+				
 			}
 			
 		}

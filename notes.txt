@@ -23,3 +23,4 @@ https://stackoverflow.com/questions/20234104/how-to-format-current-time-using-a-
 - filter tasks when requesting them? (like show only 'in progress' or 'to do')
 - make tasks a little more than just a title, date and status? be able to provide
   a description as well maybe?
+- prettify the output (if possible)?
