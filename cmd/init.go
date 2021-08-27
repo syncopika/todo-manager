@@ -18,9 +18,28 @@ package cmd
 import (
 	"fmt"
 	"os"
+	fp "path/filepath"
 
 	"github.com/spf13/cobra"
 )
+
+func createFile(filepath string) {
+	err := os.MkdirAll(fp.Dir(filepath), 0770)
+	if err != nil {
+		fmt.Printf("oh no, %s was not able to be created!", fp.Dir(filepath)) 
+	}else{
+		file, err2 := os.Create(filepath)
+		defer file.Close()
+		if err2 != nil {
+			fmt.Printf("oh no, something went wrong! %s was unable to be created.\n", filepath)
+		}else{
+			fmt.Println("new TODO file created!")
+		}
+	}
+}
+
+// name of a TODO list to create if passed in as an arg to init
+var TodoFileName string
 
 // initCmd represents the serve command
 var initCmd = &cobra.Command{
@@ -30,18 +49,22 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// create a new text file for holding TODO tasks
 		// but check if one exists already
-		_, err := os.Stat("todo.txt")
+		// all TODO lists should go in the todo-lists directory
+		
+		var filepath = "todo-lists/"
+		if TodoFileName != "" {
+			filepath += TodoFileName + ".txt"
+		}else{
+			filepath += "todo.txt"
+		}
+		
+		_, err := os.Stat(filepath)
+		
 		if err == nil {
 			// file already exists
-			fmt.Println("todo.txt already exists!")
+			fmt.Printf("%s already exists!", filepath)
 		}else{
-			file, err := os.Create("todo.txt")
-			defer file.Close()
-			if err != nil {
-				fmt.Println("oh no, something went wrong! todo.txt was unable to be created.")
-			}else{
-				fmt.Println("new TODO file created!")
-			}
+			createFile(filepath)
 		}
 	},
 }
@@ -57,5 +80,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().StringVarP(&TodoFileName, "create", "c", "", "create a new TODO list")
 }

@@ -15,7 +15,7 @@ the info about `go mod init` is useful.
 https://gobyexample.com/writing-files
 https://gobyexample.com/reading-files
 https://stackoverflow.com/questions/20234104/how-to-format-current-time-using-a-yyyymmddhhmmss-format
-
+https://stackoverflow.com/questions/59961510/golang-os-create-path-with-nested-directories
 
 // TODO
 - when tasks are done, move them to a separate file?
