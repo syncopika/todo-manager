@@ -24,89 +24,53 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// let the user find the TODO file they want to list the tasks of
-// TODO: see list.go for SelectFile
-func SelectFile2() {
-	// get all the files in todo-lists/
-	files, err := ioutil.ReadDir("todo-lists") // []fs.FileInfo
-	
-	var fileNames []string
-	for _, file := range files {
-		fileNames = append(fileNames, file.Name())
-	}
-	
-	prompt := promptui.Select{
-		Label: "Select the TODO list",
-		Items: fileNames,
-	}
-	
-	_, fileToSelect, err := prompt.Run()
-	
-	if err != nil {
-		fmt.Println("ruh roh, TODO file selection failed!")
-	}else{
-		// list all tasks in the selected file
-		path := fmt.Sprintf("todo-lists/%s", fileToSelect)
-		DisplayTasks(path)
-	}
-}
 
 func DisplayTasks(filename string){
 	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Sprintf("had trouble reading %s!\n", filename)
-	}else{
-		lines := string(data)
-		tasks := strings.Split(lines, "\n") // only get title of task?
-		fmt.Println(tasks) // editing a todo file manually causes trouble?
-		
-		prompt := promptui.Select{
-			Label: "Select Task",
-			Items: tasks,
-		}
-		
-		idx, result, err2 := prompt.Run()
+	HandleError(err, fmt.Sprintf("had trouble reading %s!\n", filename))
 
-		if err2 != nil {
-			fmt.Println("prompt failed!")
-		}else{
-			// TODO: after selecting task, allow user to edit
-			// add another select prompt to ask if they want to edit the title, status (and later description?)
-			// then have another prompt for editing. if status, another select prompt is needed.
-			fmt.Printf("you picked: " + result + " at index: %d\n", idx)
-			
-			prompt2 := promptui.Select{
-				Label: "What would you like to do",
-				Items: []string{"edit task", "edit status", "remove task", "nevermind"},
-			}
-			
-			_, result2, err3 := prompt2.Run()
-			if err3 != nil {
-				fmt.Println("ruh roh, prompt2 failed!")
-			}else{
-				if result2 == "edit task" {
-					fmt.Println("edit task")
-					
-					// prompt user to enter new task
-					
-				}else if result2 == "edit status" {
-					fmt.Println("edit status")
-					
-					// prompt user to select new status of task
-					promptStatus := promptui.Select{
-						Label: "Change Status",
-						Items: []string{"TODO", "IN PROGRESS", "DONE"},
-					}
-					
-					_, newStatus, err3 := promptStatus.Run()
-					if err3 != nil {
-						fmt.Println("promptStatus failed!")
-					}else{
-						fmt.Println("new status: " + newStatus)
-					}
-				}
-			}
+	lines := string(data)
+	tasks := strings.Split(lines, "\n")
+	//fmt.Println(tasks) // editing a todo file manually causes trouble?
+	
+	prompt := promptui.Select{
+		Label: "Select Task",
+		Items: tasks,
+	}
+	
+	idx, result, err2 := prompt.Run()
+	HandleError(err2, "prompt failed!")
+	
+	// TODO: after selecting task, allow user to edit
+	// add another select prompt to ask if they want to edit the title, status (and later description?)
+	// then have another prompt for editing. if status, another select prompt is needed.
+	fmt.Printf("you picked: " + result + " at index: %d\n", idx)
+	
+	prompt2 := promptui.Select{
+		Label: "What would you like to do",
+		Items: []string{"edit task", "edit status", "remove task", "nevermind"},
+	}
+	
+	_, result2, err3 := prompt2.Run()
+	HandleError(err3, "ruh roh, prompt2 failed!")
+	
+	if result2 == "edit task" {
+		fmt.Println("edit task")
+		
+		// prompt user to enter new task
+		
+	}else if result2 == "edit status" {
+		fmt.Println("edit status")
+		
+		// prompt user to select new status of task
+		promptStatus := promptui.Select{
+			Label: "Change Status",
+			Items: []string{"TODO", "IN PROGRESS", "DONE"},
 		}
+		
+		_, newStatus, err4 := promptStatus.Run()
+		HandleError(err4, "prompt status failed!")
+		fmt.Println("new status: " + newStatus)
 	}
 }
 
@@ -120,12 +84,15 @@ var editCmd = &cobra.Command{
 	Long: "A longer description",
 	Run: func(cmd *cobra.Command, args []string) {
 	
+		dirPath := "todo-lists"
+	
 		if SelectedFileNameEdit != "" {
 			// maybe check if the file extension exists in the name already?
-			DisplayTasks(fmt.Sprintf("todo-lists/%s.txt", SelectedFileNameEdit))
+			DisplayTasks(fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameEdit))
 		}else{
 			// list the files to choose from and then show tasks to edit
-			SelectFile2()
+			filepath := SelectFile(dirPath)
+			DisplayTasks(filepath)
 		}
 		
 	},

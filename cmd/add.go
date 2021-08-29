@@ -26,19 +26,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var SelectedFileNameAdd string
+
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "add a new item to the TODO list",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: "add a new item to the TODO list",
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("add called")
+	
+		var filepath string
+		dirPath := "todo-lists"
+		
+		// select TODO file to add to
+		if SelectedFileNameAdd == "" {
+			filepath = SelectFile(dirPath)
+		}else{
+			filepath = fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameList)
+		}
 		
 		validateAdd := func(input string) error {
 			if len(strings.TrimSpace(input)) <= 0 {
@@ -62,9 +68,7 @@ to quickly create a Cobra application.`,
 		}
 		
 		taskName, err := addPrompt.Run()
-		if err != nil {
-			fmt.Println("prompt failed!")
-		}
+		HandleError(err, "prompt failed!")
 		
 		// check status of task with user
 		statusCheckPrompt := promptui.Select{
@@ -73,28 +77,20 @@ to quickly create a Cobra application.`,
 		}
 		
 		_, statusRes, err2 := statusCheckPrompt.Run()
-		if err2 != nil {
-			fmt.Println("status check prompt failed")
-		}
+		HandleError(err2, "status check prompt failed")
 		
 		// check if file exists? then add (create file if needed?)
 		currTime := time.Now()
 		formattedTime := currTime.Format("Mon Jan 2 15:04:05 MST 2006")
 		
-		file, err3 := os.OpenFile("todo.txt", os.O_RDWR|os.O_APPEND, 0644)
+		file, err3 := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND, 0644)
 		defer file.Close()
+		HandleError(err3, "failed to open todo.txt!")
 		
-		if err3 != nil {
-			fmt.Println("failed to open todo.txt!")
-		}else{
-			newTask := taskName + "|" + statusRes + "|" + formattedTime + "\n"
-			_, err4 := file.WriteString(newTask)
-			if err4 != nil {
-				fmt.Println("There was a problem writing to todo.txt!")
-			}else{
-				fmt.Println("New task added!")
-			}
-		}
+		newTask := taskName + "|" + statusRes + "|" + formattedTime + "\n"
+		_, err4 := file.WriteString(newTask)
+		HandleError(err4, "There was a problem writing to todo.txt!")
+		fmt.Println("New task added!")
 	},
 }
 
@@ -109,5 +105,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	addCmd.Flags().StringVarP(&SelectedFileNameList, "file", "f", "", "specify the TODO list to add tasks to")
 }

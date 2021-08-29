@@ -19,42 +19,9 @@ import (
 	"io/ioutil"
 	"fmt"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
-// let the user find the TODO file they want to list the tasks of
-// TODO: make this function just return the selected file (or an error)
-// and put in a utils.go file so it can used elsewhere too
-func SelectFile() {
-	// get all the files in todo-lists/
-	files, err := ioutil.ReadDir("todo-lists") // []fs.FileInfo
-	
-	var fileNames []string
-	for _, file := range files {
-		fileNames = append(fileNames, file.Name())
-	}
-	
-	prompt := promptui.Select{
-		Label: "Select the TODO list",
-		Items: fileNames,
-	}
-	
-	_, fileToSelect, err := prompt.Run()
-	
-	if err != nil {
-		fmt.Println("ruh roh, TODO file selection failed!")
-	}else{
-		// list all tasks in the selected file
-		path := fmt.Sprintf("todo-lists/%s", fileToSelect)
-		data, err2 := ioutil.ReadFile(path)
-		if err2 != nil {
-			fmt.Printf("had trouble reading %s!\n", path)
-		}else{
-			fmt.Println(string(data))
-		}
-	}
-}
 
 var SelectedFileNameList string
 
@@ -62,28 +29,24 @@ var SelectedFileNameList string
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "list the tasks in the TODO list",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: "list the current tasks in the TODO list",
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: have list be able to accept an argument for how many tasks to list (subcommand?)
-		// offer option to show only todo/in-progress tasks or finished tasks?
-		// also be able to edit a task? maybe that should be a separate command (or subcommand)
-		// also format the info nicely
+		// offer option to show only todo/in-progress tasks or finished tasks? also format the info nicely
+		
+		var filepath string
+		dirPath := "todo-lists"
 		
 		if SelectedFileNameList == "" {
-			SelectFile()
+			filepath = SelectFile(dirPath)
 		}else{
-			data, err := ioutil.ReadFile(fmt.Sprintf("todo-lists/%s.txt", SelectedFileNameList))
-			if err != nil {
-				fmt.Println("had trouble reading todo.txt!")
-			}else{
-				fmt.Println(string(data))
-			}
+			filepath = fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameList)
 		}
+		
+		data, err := ioutil.ReadFile(filepath)
+		HandleError(err, "had trouble reading todo.txt!")
+		
+		fmt.Println(string(data))
 	},
 }
 
