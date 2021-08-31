@@ -16,50 +16,61 @@ limitations under the License.
 package cmd
 
 import (
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
+func editTask(taskString string, field string, newValue string) string {
+	selectTaskTokens := strings.Split(taskString, "|")
+	
+	if field == "status" {
+		selectTaskTokens[1] = newValue
+	}
+	
+	return strings.Join(selectTaskTokens, "|")
+}
+
 
 func DisplayTasks(filename string){
 	data, err := ioutil.ReadFile(filename)
 	HandleError(err, fmt.Sprintf("had trouble reading %s!\n", filename))
 
+	// note: editing a todo file manually causes trouble? something to do with \n
 	lines := string(data)
 	tasks := strings.Split(lines, "\n")
-	//fmt.Println(tasks) // editing a todo file manually causes trouble?
 	
 	prompt := promptui.Select{
 		Label: "Select Task",
 		Items: tasks,
 	}
 	
-	idx, result, err2 := prompt.Run()
+	taskIdx, selectTask, err2 := prompt.Run()
 	HandleError(err2, "prompt failed!")
 	
 	// TODO: after selecting task, allow user to edit
 	// add another select prompt to ask if they want to edit the title, status (and later description?)
 	// then have another prompt for editing. if status, another select prompt is needed.
-	fmt.Printf("you picked: " + result + " at index: %d\n", idx)
+	//fmt.Printf("you picked: " + selectTask + " at index: %d\n", taskIdx)
 	
-	prompt2 := promptui.Select{
+	todoPrompt := promptui.Select{
 		Label: "What would you like to do",
 		Items: []string{"edit task", "edit status", "remove task", "nevermind"},
 	}
 	
-	_, result2, err3 := prompt2.Run()
-	HandleError(err3, "ruh roh, prompt2 failed!")
+	_, todo, err3 := todoPrompt.Run()
+	HandleError(err3, "ruh roh, todoPrompt failed!")
 	
-	if result2 == "edit task" {
+	if todo == "edit task" {
 		fmt.Println("edit task")
 		
 		// prompt user to enter new task
 		
-	}else if result2 == "edit status" {
+	}else if todo == "edit status" {
 		fmt.Println("edit status")
 		
 		// prompt user to select new status of task
@@ -70,7 +81,28 @@ func DisplayTasks(filename string){
 		
 		_, newStatus, err4 := promptStatus.Run()
 		HandleError(err4, "prompt status failed!")
-		fmt.Println("new status: " + newStatus)
+		//fmt.Println("new status: " + newStatus)
+		
+		// TODO: we're making an assumption about how
+		// we're storing the task info in the TODO list!
+		// change later? use a struct?
+		editedTask := editTask(selectTask, "status", newStatus)
+		
+		// replace the task at the right index of tasks from above
+		tasks[taskIdx] = editedTask
+		
+		// then rejoin tasks as a single string and rewrite to file
+		revisedTasks := strings.Join(tasks, "\n")
+		
+		file, err5 := os.OpenFile(filename, os.O_RDWR, 0644)
+		defer file.Close()
+		HandleError(err5, fmt.Sprintf("failed to open %s!\n", filename))
+		
+		_, err6 := file.WriteString(revisedTasks)
+		HandleError(err6, fmt.Sprintf("There was a problem writing to %s!\n", filename))
+		fmt.Println("task was revised!")
+		
+		// TODO - add a another field of the TODO list for recording the timestamp of when the task was modified?
 	}
 }
 
