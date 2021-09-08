@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +34,6 @@ func editTask(taskString string, field string, newValue string) string {
 	return strings.Join(selectTaskTokens, "|")
 }
 
-
 func DisplayTasks(filename string){
 	data, err := ioutil.ReadFile(filename)
 	HandleError(err, fmt.Sprintf("had trouble reading %s!\n", filename))
@@ -44,26 +42,18 @@ func DisplayTasks(filename string){
 	lines := string(data)
 	tasks := strings.Split(lines, "\n")
 	
-	prompt := promptui.Select{
-		Label: "Select Task",
-		Items: tasks,
-	}
-	
-	taskIdx, selectTask, err2 := prompt.Run()
-	HandleError(err2, "prompt failed!")
+	// we need to pass an int ptr to get back the selected task index
+	var taskIndex = SurveyAskOneSelectIndex("Select task", tasks)
+	var selectedTask = tasks[taskIndex]
 	
 	// TODO: after selecting task, allow user to edit
 	// add another select prompt to ask if they want to edit the title, status (and later description?)
 	// then have another prompt for editing. if status, another select prompt is needed.
-	//fmt.Printf("you picked: " + selectTask + " at index: %d\n", taskIdx)
 	
-	todoPrompt := promptui.Select{
-		Label: "What would you like to do",
-		Items: []string{"edit task", "edit status", "remove task", "nevermind"},
-	}
-	
-	_, todo, err3 := todoPrompt.Run()
-	HandleError(err3, "ruh roh, todoPrompt failed!")
+	var todo = SurveyAskOneSelect(
+		"What would you like to do", 
+		[]string{"edit task", "edit status", "remove task", "nevermind"},
+	)
 	
 	if todo == "edit task" {
 		fmt.Println("edit task")
@@ -73,33 +63,28 @@ func DisplayTasks(filename string){
 	}else if todo == "edit status" {
 		fmt.Println("edit status")
 		
-		// prompt user to select new status of task
-		promptStatus := promptui.Select{
-			Label: "Change Status",
-			Items: []string{"TODO", "IN PROGRESS", "DONE"},
-		}
-		
-		_, newStatus, err4 := promptStatus.Run()
-		HandleError(err4, "prompt status failed!")
-		//fmt.Println("new status: " + newStatus)
+		var newStatus = SurveyAskOneSelect(
+			"Change Status", 
+			[]string{"TODO", "IN PROGRESS", "DONE"},
+		)
 		
 		// TODO: we're making an assumption about how
 		// we're storing the task info in the TODO list!
 		// change later? use a struct?
-		editedTask := editTask(selectTask, "status", newStatus)
+		editedTask := editTask(selectedTask, "status", newStatus)
 		
 		// replace the task at the right index of tasks from above
-		tasks[taskIdx] = editedTask
+		tasks[taskIndex] = editedTask
 		
 		// then rejoin tasks as a single string and rewrite to file
 		revisedTasks := strings.Join(tasks, "\n")
 		
-		file, err5 := os.OpenFile(filename, os.O_RDWR, 0644)
+		file, openFileErr := os.OpenFile(filename, os.O_RDWR, 0644)
 		defer file.Close()
-		HandleError(err5, fmt.Sprintf("failed to open %s!\n", filename))
+		HandleError(openFileErr, fmt.Sprintf("failed to open %s!\n", filename))
 		
-		_, err6 := file.WriteString(revisedTasks)
-		HandleError(err6, fmt.Sprintf("There was a problem writing to %s!\n", filename))
+		_, writeFileError := file.WriteString(revisedTasks)
+		HandleError(writeFileError, fmt.Sprintf("There was a problem writing to %s!\n", filename))
 		fmt.Println("task was revised!")
 		
 		// TODO - add a another field of the TODO list for recording the timestamp of when the task was modified?
@@ -115,7 +100,6 @@ var editCmd = &cobra.Command{
 	Short: "edit a TODO item",
 	Long: "A longer description",
 	Run: func(cmd *cobra.Command, args []string) {
-	
 		dirPath := "todo-lists"
 	
 		if SelectedFileNameEdit != "" {
@@ -126,7 +110,6 @@ var editCmd = &cobra.Command{
 			filepath := SelectFile(dirPath)
 			DisplayTasks(filepath)
 		}
-		
 	},
 }
 

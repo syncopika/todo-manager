@@ -19,6 +19,7 @@ https://stackoverflow.com/questions/59961510/golang-os-create-path-with-nested-d
 https://golangbyexample.com/indirect-dependency-golang/
 
 // TODO
+- use JSON pls, not plaintext lol
 - when tasks are done, move them to a separate file?
 - put todo.txt in a folder?
 - filter tasks when requesting them? (like show only 'in progress' or 'to do')

@@ -16,13 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/manifoldco/promptui"
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -46,38 +44,22 @@ var addCmd = &cobra.Command{
 			filepath = fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameList)
 		}
 		
+		/*
 		validateAdd := func(input string) error {
 			if len(strings.TrimSpace(input)) <= 0 {
 				return errors.New("you didn't enter anything!")
 			}
 			return nil
-		}
+		}*/
 		
-		templates := &promptui.PromptTemplates{
-			Prompt:  "{{ . }} ",
-			Valid:   "{{ . | green }} ",
-			Invalid: "{{ . | red }} ",
-			Success: "{{ . | bold }} ",
-		}
+		var taskName = ""
+		prompt := &survey.Input{ Message: "Add TODO Item" }
+		survey.AskOne(prompt, &taskName, survey.WithValidator(survey.MinLength(1)))
 		
-		// add new task
-		addPrompt := promptui.Prompt{
-			Label: "Add TODO Item",
-			Templates: templates,
-			Validate: validateAdd,
-		}
-		
-		taskName, err := addPrompt.Run()
-		HandleError(err, "prompt failed!")
-		
-		// check status of task with user
-		statusCheckPrompt := promptui.Select{
-			Label: "Check TODO Item Status",
-			Items: []string{"TODO", "IN PROGRESS", "DONE"},
-		}
-		
-		_, statusRes, err2 := statusCheckPrompt.Run()
-		HandleError(err2, "status check prompt failed")
+		var statusRes = SurveyAskOneSelect(
+			"Check TODO Item Status",
+			[]string{"TODO", "IN PROGRESS", "DONE"},
+		)
 		
 		// check if file exists? then add (create file if needed?)
 		currTime := time.Now()
