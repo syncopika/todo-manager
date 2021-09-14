@@ -53,9 +53,9 @@ var initCmd = &cobra.Command{
 		
 		var filepath = "todo-lists/"
 		if TodoFileName != "" {
-			filepath += TodoFileName + ".txt"
+			filepath += TodoFileName + ".json"
 		}else{
-			filepath += "todo.txt"
+			filepath += "todo.json"
 		}
 		
 		_, err := os.Stat(filepath)

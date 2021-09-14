@@ -1,12 +1,38 @@
 package cmd
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
 )
 
+// define our types for the TODO list JSON
+type TodoList map[string]TodoEntry
+
+type TodoEntry struct {
+	TaskName                string  `json:"name"`
+	TaskDescription         string  `json:"description"`
+	TaskStatus              string  `json:"status"`
+	TaskCreatedTimestamp	string  `json:"created"`
+	TaskUpdatedTimestamp	string  `json:"updated"`
+}
+
+func GetFileContents(filepath string) TodoList {
+	file, err := ioutil.ReadFile(filepath)
+	HandleError(err, fmt.Sprintf("failed to open %s!", filepath))
+	
+	var todoList TodoList
+	
+	// check if file is an empty array
+	if len(file) == 0 {
+		return TodoList{}
+	}else{
+		json.Unmarshal(file, &todoList)
+		return todoList
+	}
+}
 
 // let the user find the TODO file they want to list the tasks of
 func SelectFile(dirPath string) string {

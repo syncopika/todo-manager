@@ -17,6 +17,8 @@ https://gobyexample.com/reading-files
 https://stackoverflow.com/questions/20234104/how-to-format-current-time-using-a-yyyymmddhhmmss-format
 https://stackoverflow.com/questions/59961510/golang-os-create-path-with-nested-directories
 https://golangbyexample.com/indirect-dependency-golang/
+https://www.golangprograms.com/golang-writing-struct-to-json-file.html
+https://stackoverflow.com/questions/49585021/how-to-check-if-a-json-matches-a-struct-struct-fields
 
 // TODO
 - use JSON pls, not plaintext lol
