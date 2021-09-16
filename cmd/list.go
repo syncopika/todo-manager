@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"io/ioutil"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -38,15 +37,14 @@ var listCmd = &cobra.Command{
 		dirPath := "todo-lists"
 		
 		if SelectedFileNameList == "" {
+			// if no file specified, have the user select which one
 			filepath = SelectFile(dirPath)
 		}else{
-			filepath = fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameList)
+			// get specified file
+			filepath = fmt.Sprintf("%s/%s.json", dirPath, SelectedFileNameList)
 		}
 		
-		data, err := ioutil.ReadFile(filepath)
-		HandleError(err, "had trouble reading todo.txt!")
-		
-		fmt.Println(string(data))
+		DisplayTodoList(filepath)
 	},
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"fmt"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 )
@@ -34,6 +35,15 @@ func GetFileContents(filepath string) TodoList {
 	}
 }
 
+func DisplayTodoList(filepath string) {
+	var todoList = GetFileContents(filepath)
+	for _, entry := range todoList {
+		// TODO: reformat display of TodoEntry struct
+		fmt.Println(entry)
+		fmt.Println("---------")
+	}
+}
+
 // let the user find the TODO file they want to list the tasks of
 func SelectFile(dirPath string) string {
 	// get all the files in todo-lists/
@@ -45,7 +55,13 @@ func SelectFile(dirPath string) string {
 	
 	var fileNames []string
 	for _, file := range files {
-		fileNames = append(fileNames, file.Name())
+		
+		fname := file.Name()
+		
+		// we only want to collect json files
+		if strings.Contains(fname, ".json") {
+			fileNames = append(fileNames, file.Name())
+		}
 	}
 	
 	fileToSelect := SurveyAskOneSelect("Select the TODO list", fileNames)

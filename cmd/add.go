@@ -44,10 +44,17 @@ var addCmd = &cobra.Command{
 			filepath = fmt.Sprintf("%s/%s.json", dirPath, SelectedFileNameList)
 		}
 		
+		// ask for name of new todo item
 		var taskName = ""
-		prompt := &survey.Input{ Message: "Add TODO Item" }
-		survey.AskOne(prompt, &taskName, survey.WithValidator(survey.MinLength(1)))
+		getTodoItemName := &survey.Input{ Message: "new TODO item name: " }
+		survey.AskOne(getTodoItemName, &taskName, survey.WithValidator(survey.MinLength(1)))
+
+		// ask for the description of the todo item
+		var taskDescription = ""
+		getTodoItemDescription := &survey.Input{ Message: "new TODO item description: " }
+		survey.AskOne(getTodoItemDescription, &taskDescription, survey.WithValidator(survey.MinLength(1)))
 		
+		// ask for todo item status
 		var statusRes = SurveyAskOneSelect(
 			"Check TODO Item Status",
 			[]string{"TODO", "IN PROGRESS", "DONE"},
@@ -56,9 +63,10 @@ var addCmd = &cobra.Command{
 		currTime := time.Now()
 		formattedTime := currTime.Format("Mon Jan 2 15:04:05 MST 2006")
 
+		// build the todo entry
 		newEntry := TodoEntry{
 			TaskName:             taskName,
-			TaskDescription:      "",
+			TaskDescription:      taskDescription,
 			TaskStatus:           statusRes,
 			TaskCreatedTimestamp: formattedTime,
 			TaskUpdatedTimestamp: "",
@@ -67,7 +75,13 @@ var addCmd = &cobra.Command{
 		// get curr json data and add to it
 		var currTodoList = GetFileContents(filepath)
 		
-		currTodoList[taskName] = newEntry
+		if val, exists := currTodoList[taskName]; exists {
+			// value already exists
+			// TODO: allow user to overwrite?
+			fmt.Println("%s already exists!", taskName);
+		}else{
+			currTodoList[taskName] = newEntry
+		}
 		
 		dataToWrite, err := json.MarshalIndent(currTodoList, "", " ")
 		HandleError(err, "error marshalling the new data!")
