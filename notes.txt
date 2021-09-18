@@ -21,6 +21,7 @@ https://www.golangprograms.com/golang-writing-struct-to-json-file.html
 https://stackoverflow.com/questions/49585021/how-to-check-if-a-json-matches-a-struct-struct-fields
 https://stackoverflow.com/questions/2050391/how-to-check-if-a-map-contains-a-key-in-go
 https://stackoverflow.com/questions/40578646/golang-i-have-a-map-of-int-to-struct-why-cant-i-directly-modify-a-field-in-a
+https://stackoverflow.com/questions/42605337/cannot-assign-to-struct-field-in-a-map
 
 // TODO
 - use JSON pls, not plaintext lol

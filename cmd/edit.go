@@ -23,8 +23,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func editTask(todo *TodoList, taskField string, taskName string, newValue string){
+	if task, exists := (*todo)[taskName]; exists {
+		// task will be a copy of the TodoEntry struct at todo[taskName]
+		if taskField == "status" {
+			task.TaskStatus = newValue
+		}
+		
+		// update map with a new updated struct
+		(*todo)[taskName] = task
+	}
+}
+
 func DisplayTasks(filename string){
-	var todoList = GetFileContents(filename)
+	var todoList = GetFileContents(filename) // returns map[string]TodoEntry
 	
 	// we need to pass an int ptr to get back the selected task index
 	var tasks = []string{}
@@ -32,7 +44,7 @@ func DisplayTasks(filename string){
 		tasks = append(tasks, k)
 	}
 	
-	var selectedTask = SurveyAskOneSelect("Select task", tasks)
+	var selectedTaskName = SurveyAskOneSelect("Select task", tasks)
 	
 	var todo = SurveyAskOneSelect(
 		"What would you like to do", 
@@ -50,8 +62,8 @@ func DisplayTasks(filename string){
 			[]string{"TODO", "IN PROGRESS", "DONE"},
 		)
 		
-		// can't edit a struct in a map
-		todoList[selectedTask].TaskStatus = newStatus
+		// add back to the map the new task
+		editTask(&todoList, "status", selectedTaskName, newStatus)
 		
 		dataToWrite, err := json.MarshalIndent(todoList, "", " ")
 		HandleError(err, "error marshalling the updated data!")

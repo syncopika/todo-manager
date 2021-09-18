@@ -75,7 +75,7 @@ var addCmd = &cobra.Command{
 		// get curr json data and add to it
 		var currTodoList = GetFileContents(filepath)
 		
-		if val, exists := currTodoList[taskName]; exists {
+		if _, exists := currTodoList[taskName]; exists {
 			// value already exists
 			// TODO: allow user to overwrite?
 			fmt.Println("%s already exists!", taskName);
