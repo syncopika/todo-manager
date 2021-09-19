@@ -16,8 +16,9 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -25,7 +26,6 @@ import (
 )
 
 var SelectedFileNameAdd string
-
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
@@ -41,37 +41,54 @@ var addCmd = &cobra.Command{
 		if SelectedFileNameAdd == "" {
 			filepath = SelectFile(dirPath)
 		}else{
-			filepath = fmt.Sprintf("%s/%s.txt", dirPath, SelectedFileNameList)
+			filepath = fmt.Sprintf("%s/%s.json", dirPath, SelectedFileNameList)
 		}
 		
-		/*
-		validateAdd := func(input string) error {
-			if len(strings.TrimSpace(input)) <= 0 {
-				return errors.New("you didn't enter anything!")
-			}
-			return nil
-		}*/
-		
+		// ask for name of new todo item
 		var taskName = ""
-		prompt := &survey.Input{ Message: "Add TODO Item" }
-		survey.AskOne(prompt, &taskName, survey.WithValidator(survey.MinLength(1)))
+		getTodoItemName := &survey.Input{ Message: "new TODO item name: " }
+		survey.AskOne(getTodoItemName, &taskName, survey.WithValidator(survey.MinLength(1)))
+
+		// ask for the description of the todo item
+		var taskDescription = ""
+		getTodoItemDescription := &survey.Input{ Message: "new TODO item description: " }
+		survey.AskOne(getTodoItemDescription, &taskDescription, survey.WithValidator(survey.MinLength(1)))
 		
+		// ask for todo item status
 		var statusRes = SurveyAskOneSelect(
 			"Check TODO Item Status",
 			[]string{"TODO", "IN PROGRESS", "DONE"},
 		)
 		
-		// check if file exists? then add (create file if needed?)
 		currTime := time.Now()
 		formattedTime := currTime.Format("Mon Jan 2 15:04:05 MST 2006")
+
+		// build the todo entry
+		newEntry := TodoEntry{
+			TaskName:             taskName,
+			TaskDescription:      taskDescription,
+			TaskStatus:           statusRes,
+			TaskCreatedTimestamp: formattedTime,
+			TaskUpdatedTimestamp: "",
+		}
 		
-		file, err3 := os.OpenFile(filepath, os.O_RDWR|os.O_APPEND, 0644)
-		defer file.Close()
-		HandleError(err3, "failed to open todo.txt!")
+		// get curr json data and add to it
+		var currTodoList = GetFileContents(filepath)
 		
-		newTask := taskName + "|" + statusRes + "|" + formattedTime + "\n"
-		_, err4 := file.WriteString(newTask)
-		HandleError(err4, "There was a problem writing to todo.txt!")
+		if _, exists := currTodoList[taskName]; exists {
+			// value already exists
+			// TODO: allow user to overwrite?
+			fmt.Println("%s already exists!", taskName);
+		}else{
+			currTodoList[taskName] = newEntry
+		}
+		
+		dataToWrite, err := json.MarshalIndent(currTodoList, "", " ")
+		HandleError(err, "error marshalling the new data!")
+		
+		err2 := ioutil.WriteFile(filepath, dataToWrite, 0644)
+		HandleError(err2, "error writing the new data to file!")
+		
 		fmt.Println("New task added!")
 	},
 }

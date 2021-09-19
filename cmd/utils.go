@@ -1,12 +1,59 @@
 package cmd
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"fmt"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 )
 
+// define our types for the TODO list JSON
+type TodoList map[string]TodoEntry
+
+type TodoEntry struct {
+	TaskName                string  `json:"name"`
+	TaskDescription         string  `json:"description"`
+	TaskStatus              string  `json:"status"`
+	TaskCreatedTimestamp	string  `json:"created"`
+	TaskUpdatedTimestamp	string  `json:"updated"`
+}
+
+func GetFileContents(filepath string) TodoList {
+	file, err := ioutil.ReadFile(filepath)
+	HandleError(err, fmt.Sprintf("failed to open %s!", filepath))
+	
+	var todoList TodoList
+	
+	// check if file is an empty array
+	if len(file) == 0 {
+		return TodoList{}
+	}else{
+		json.Unmarshal(file, &todoList)
+		return todoList
+	}
+}
+
+func DisplayTodoList(filepath string) {
+	var todoList = GetFileContents(filepath)
+	
+	fmt.Println(filepath)
+	
+	for _, task := range todoList {
+		// TODO: reformat display of TodoEntry struct
+		//fmt.Println(entry)
+		fmt.Printf(
+			"task: %s\n description: %s\n status: %s\n created: %s\n updated: %s\n",
+			task.TaskName,
+			task.TaskDescription,
+			task.TaskStatus,
+			task.TaskCreatedTimestamp,
+			task.TaskUpdatedTimestamp,
+		)
+		fmt.Println("---------")
+	}
+}
 
 // let the user find the TODO file they want to list the tasks of
 func SelectFile(dirPath string) string {
@@ -19,7 +66,13 @@ func SelectFile(dirPath string) string {
 	
 	var fileNames []string
 	for _, file := range files {
-		fileNames = append(fileNames, file.Name())
+		
+		fname := file.Name()
+		
+		// we only want to collect json files
+		if strings.Contains(fname, ".json") {
+			fileNames = append(fileNames, file.Name())
+		}
 	}
 	
 	fileToSelect := SurveyAskOneSelect("Select the TODO list", fileNames)

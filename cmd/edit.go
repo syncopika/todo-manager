@@ -16,49 +16,48 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
-func editTask(taskString string, field string, newValue string) string {
-	selectTaskTokens := strings.Split(taskString, "|")
-	
-	if field == "status" {
-		selectTaskTokens[1] = newValue
+func editTask(todo *TodoList, taskField string, taskName string, newValue string){
+	if task, exists := (*todo)[taskName]; exists {
+		// task will be a copy of the TodoEntry struct at todo[taskName]
+		if taskField == "status" {
+			task.TaskStatus = newValue
+		} else if taskField == "updated" {
+			task.TaskUpdatedTimestamp = newValue
+		}
+		
+		// TODO: fill in the other options
+		
+		// update map with a new updated struct
+		(*todo)[taskName] = task
 	}
-	
-	return strings.Join(selectTaskTokens, "|")
 }
 
 func DisplayTasks(filename string){
-	data, err := ioutil.ReadFile(filename)
-	HandleError(err, fmt.Sprintf("had trouble reading %s!\n", filename))
-
-	// note: editing a todo file manually causes trouble? something to do with \n
-	lines := string(data)
-	tasks := strings.Split(lines, "\n")
+	var todoList = GetFileContents(filename) // returns map[string]TodoEntry
 	
 	// we need to pass an int ptr to get back the selected task index
-	var taskIndex = SurveyAskOneSelectIndex("Select task", tasks)
-	var selectedTask = tasks[taskIndex]
+	var tasks = []string{}
+	for k, _ := range todoList {
+		tasks = append(tasks, k)
+	}
 	
-	// TODO: after selecting task, allow user to edit
-	// add another select prompt to ask if they want to edit the title, status (and later description?)
-	// then have another prompt for editing. if status, another select prompt is needed.
+	var selectedTaskName = SurveyAskOneSelect("Select task", tasks)
 	
 	var todo = SurveyAskOneSelect(
 		"What would you like to do", 
-		[]string{"edit task", "edit status", "remove task", "nevermind"},
+		[]string{"edit task description", "edit status", "remove task", "nevermind"},
 	)
 	
-	if todo == "edit task" {
-		fmt.Println("edit task")
-		
-		// prompt user to enter new task
+	if todo == "edit task description" {
+		fmt.Println("edit task description")
 		
 	}else if todo == "edit status" {
 		fmt.Println("edit status")
@@ -68,26 +67,18 @@ func DisplayTasks(filename string){
 			[]string{"TODO", "IN PROGRESS", "DONE"},
 		)
 		
-		// TODO: we're making an assumption about how
-		// we're storing the task info in the TODO list!
-		// change later? use a struct?
-		editedTask := editTask(selectedTask, "status", newStatus)
+		// add back to the map the new task and update the updated field with current timestamp
+		editTask(&todoList, "status", selectedTaskName, newStatus)
 		
-		// replace the task at the right index of tasks from above
-		tasks[taskIndex] = editedTask
+		currTime := time.Now()
+		formattedTime := currTime.Format("Mon Jan 2 15:04:05 MST 2006")
+		editTask(&todoList, "updated", selectedTaskName, formattedTime)
 		
-		// then rejoin tasks as a single string and rewrite to file
-		revisedTasks := strings.Join(tasks, "\n")
+		dataToWrite, err := json.MarshalIndent(todoList, "", " ")
+		HandleError(err, "error marshalling the updated data!")
 		
-		file, openFileErr := os.OpenFile(filename, os.O_RDWR, 0644)
-		defer file.Close()
-		HandleError(openFileErr, fmt.Sprintf("failed to open %s!\n", filename))
-		
-		_, writeFileError := file.WriteString(revisedTasks)
-		HandleError(writeFileError, fmt.Sprintf("There was a problem writing to %s!\n", filename))
-		fmt.Println("task was revised!")
-		
-		// TODO - add a another field of the TODO list for recording the timestamp of when the task was modified?
+		err2 := ioutil.WriteFile(filename, dataToWrite, 0644)
+		HandleError(err2, "error writing the updated data to file!")
 	}
 }
 

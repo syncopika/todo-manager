@@ -2,6 +2,6 @@
     
 a boring CLI TODO manager in Go using [spf13/cobra](https://github.com/spf13/cobra) and [survey](https://github.com/AlecAivazis/survey)    
     
-right now not very useful at all and keeps track of tasks in txt files :/    
+currently just lets you add and edit TODO info (name, description and status of tasks) in JSON files :)    
     
-![edit demo](edit-demo.gif)    
+![edit demo](imgs/screenshot.png)    
