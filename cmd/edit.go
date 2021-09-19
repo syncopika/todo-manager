@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,11 @@ func editTask(todo *TodoList, taskField string, taskName string, newValue string
 		// task will be a copy of the TodoEntry struct at todo[taskName]
 		if taskField == "status" {
 			task.TaskStatus = newValue
+		} else if taskField == "updated" {
+			task.TaskUpdatedTimestamp = newValue
 		}
+		
+		// TODO: fill in the other options
 		
 		// update map with a new updated struct
 		(*todo)[taskName] = task
@@ -62,8 +67,12 @@ func DisplayTasks(filename string){
 			[]string{"TODO", "IN PROGRESS", "DONE"},
 		)
 		
-		// add back to the map the new task
+		// add back to the map the new task and update the updated field with current timestamp
 		editTask(&todoList, "status", selectedTaskName, newStatus)
+		
+		currTime := time.Now()
+		formattedTime := currTime.Format("Mon Jan 2 15:04:05 MST 2006")
+		editTask(&todoList, "updated", selectedTaskName, formattedTime)
 		
 		dataToWrite, err := json.MarshalIndent(todoList, "", " ")
 		HandleError(err, "error marshalling the updated data!")

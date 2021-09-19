@@ -37,9 +37,20 @@ func GetFileContents(filepath string) TodoList {
 
 func DisplayTodoList(filepath string) {
 	var todoList = GetFileContents(filepath)
-	for _, entry := range todoList {
+	
+	fmt.Println(filepath)
+	
+	for _, task := range todoList {
 		// TODO: reformat display of TodoEntry struct
-		fmt.Println(entry)
+		//fmt.Println(entry)
+		fmt.Printf(
+			"task: %s\n description: %s\n status: %s\n created: %s\n updated: %s\n",
+			task.TaskName,
+			task.TaskDescription,
+			task.TaskStatus,
+			task.TaskCreatedTimestamp,
+			task.TaskUpdatedTimestamp,
+		)
 		fmt.Println("---------")
 	}
 }
